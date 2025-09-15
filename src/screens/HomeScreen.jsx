@@ -1,7 +1,7 @@
 // Import React hook untuk state dan efek samping
 import { useEffect, useState } from 'react';
 // Import komponen bawaan React Native
-import { SafeAreaView, Text, FlatList, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView, Text, FlatList, StyleSheet } from 'react-native';
 // Import komponen TaskItem (custom component kita sendiri)
 import TaskItem from '../src/components/TaskItem';
 // Import helper untuk load & save data ke AsyncStorage
@@ -11,7 +11,6 @@ import { loadTasks, saveTasks } from '../src/storage/taskStorage';
 export default function Home() {
   // State untuk menyimpan daftar tugas
   const [tasks, setTasks] = useState([]);
-  const [filter, setFilter] = useState("all"); // all | todo | pending | done
 
   // useEffect → dijalankan sekali saat komponen dimount
   useEffect(() => {
@@ -41,40 +40,16 @@ export default function Home() {
     await saveTasks(updated);
   };
 
-  // Filter data sesuai pilihan
-  const filteredTasks = tasks.filter((t) => {
-    if (filter === "all") return true;
-    if (filter === "todo") return t.status === "todo";
-    if (filter === "pending") return t.status === "pending";
-    if (filter === "done") return t.status === "done";
-    return true;
-  });
-
   // Tampilan UI
   return (
     <SafeAreaView style={styles.container}>
       {/* Judul Halaman */}
       <Text style={styles.header}>TaskMate – Daftar Tugas</Text>
 
-      {/* Filter Tab */}
-      <View style={styles.filterRow}>
-        {["all", "todo", "pending", "done"].map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterBtn, filter === f && styles.filterBtnActive]}
-            onPress={() => setFilter(f)}
-          >
-            <Text style={filter === f ? styles.filterTextActive : styles.filterText}>
-              {f.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       {/* FlatList = daftar tugas */}
       <FlatList
-        data={filteredTasks} // data yang ditampilkan sesuai filter
-        keyExtractor={(item) => item.id.toString()} // key unik tiap item
+        data={tasks} // data yang ditampilkan
+        keyExtractor={(item) => item?.id?.toString()} // key unik tiap item
         contentContainerStyle={{ padding: 16 }}
         renderItem={({ item }) => (
           <TaskItem
@@ -84,7 +59,9 @@ export default function Home() {
           />
         )}
         ListEmptyComponent={
-          <Text style={{ textAlign: 'center' }}>Tidak ada tugas</Text>
+          <Text style={{ textAlign: 'center', marginTop: 20 }}>
+            Tidak ada tugas
+          </Text>
         }
       />
     </SafeAreaView>
@@ -95,26 +72,4 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   header: { fontSize: 20, fontWeight: '700', padding: 16 },
-  filterRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 8,
-  },
-  filterBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: "#e2e8f0",
-  },
-  filterBtnActive: {
-    backgroundColor: "#3b82f6",
-  },
-  filterText: {
-    color: "#1e293b",
-    fontWeight: "600",
-  },
-  filterTextActive: {
-    color: "#fff",
-    fontWeight: "700",
-  },
 });
